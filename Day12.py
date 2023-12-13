@@ -12,8 +12,8 @@ def rowIsValid(row,cgroups):
     groupsLengths = [group.end()-group.start() for group in defect_groups]
     #print(groupsLengths)
     if groupsLengths == cgroups:
-        return True
-    return False
+        return 1
+    return 0
 
 def insertIntoUnknowns(n,a,start):
     # if (n,len(a)) in memory.keys():
@@ -40,6 +40,16 @@ def flatten_nested_structure(nested_structure):
     flatten_helper(nested_structure)
     return result
 
+def insertAndCheckIntoUnknowns(n,a,start,cgroups,unknown_indices):# Problem now is that a is no longer just '.'
+    if n == 0:
+        return rowIsValid(''.join(a),cgroups)
+    if n == (len(unknown_indices)-start):
+        a[unknown_indices[start]] = '#'
+        return insertAndCheckIntoUnknowns(n-1,a,start+1,cgroups,unknown_indices)
+    aprime = a[:]
+    a[unknown_indices[start]] = '#'
+    return insertAndCheckIntoUnknowns(n-1,a,start+1,cgroups,unknown_indices)+insertAndCheckIntoUnknowns(n,aprime,start+1,cgroups,unknown_indices)
+
 def part1():
     totalConfigs = 0
     t = time.time()
@@ -48,22 +58,27 @@ def part1():
             rowString, cgroupsString = line.strip().split(" ")
             row = [symbol for symbol in rowString]
             cgroups = [int(group) for group in cgroupsString.split(',')]
+            # unknownGroups = re.findall('[#\?]+',rowString)
+            # print(unknownGroups)
             #print(rowString)
             #print(cgroups)
             # Start by indexing the ?
             unknown_chars = re.finditer(pattern=r'\?', string=rowString)
             unknown_indices = [number.start() for number in unknown_chars]
-            nunknown = len(unknown_indices)
+            # nunknown = len(unknown_indices)
             defects_total = sum(cgroups)
             defects_currently = len(re.findall('#',rowString))
             defects_needed = defects_total-defects_currently
-            empty = ['.' for _ in range(nunknown)]
-            allChoices = flatten_nested_structure(insertIntoUnknowns(defects_needed,empty,0))
+            #empty = ['.' for _ in range(nunknown)]
+            nOfChoices = insertAndCheckIntoUnknowns(defects_needed,row[:],0,cgroups,unknown_indices)
+            #print(rowString,cgroups,nOfChoices)
+            totalConfigs += nOfChoices
             # if not ((defects_needed,nunknown) in memory.keys()):
             #     memory[(defects_needed,nunknown)] = allChoices
             #print(allChoices)
 
             #print(allChoices)
+            """ allChoices = flatten_nested_structure(insertIntoUnknowns(defects_needed,empty,0))
             filledRow = row[:]
             for choice in allChoices:
                 #print(choice)
@@ -72,45 +87,31 @@ def part1():
                     filledRow[rowIndex] = choice[emptyIndex]
                 #print(filledRow)
                 if rowIsValid(''.join(filledRow),cgroups):
-                    totalConfigs+= 1
+                    totalConfigs+= 1 """
     print(totalConfigs)
     print(time.time()-t)
     return
 
 def part2():
     totalConfigs = 0
-    with open('inputs/day12.txt') as file:
+    t = time.time()
+    with open('inputs/examples/day12.txt') as file:
         for line in file:
             rowString, cgroupsString = line.strip().split(" ")
             rowString = (rowString + '?')*4 + rowString
             cgroupsString= (cgroupsString+',')*4 + cgroupsString
+            print(rowString,cgroupsString)
             row = [symbol for symbol in rowString]
             cgroups = [int(group) for group in cgroupsString.split(',')]
-            #print(rowString)
-            #print(cgroups)
-            # Start by indexing the ?
             unknown_chars = re.finditer(pattern=r'\?', string=rowString)
             unknown_indices = [number.start() for number in unknown_chars]
-            nunknown = len(unknown_indices)
             defects_total = sum(cgroups)
             defects_currently = len(re.findall('#',rowString))
             defects_needed = defects_total-defects_currently
-            empty = ['.' for _ in range(nunknown)]
-            allChoices = flatten_nested_structure(insertIntoUnknowns(defects_needed,empty,0))
-            #print(allChoices)
-
-            #print(allChoices)
-            filledRow = row[:]
-            for choice in allChoices:
-                #print(choice)
-                filledRow = row[:]
-                for emptyIndex,rowIndex in enumerate(unknown_indices):
-                    filledRow[rowIndex] = choice[emptyIndex]
-                #print(filledRow)
-                if rowIsValid(''.join(filledRow),cgroups):
-                    totalConfigs+= 1
+            nOfChoices = insertAndCheckIntoUnknowns(defects_needed,row[:],0,cgroups,unknown_indices)
+            totalConfigs += nOfChoices
     print(totalConfigs)
+    print(time.time()-t)
     return
 
-
-part1()
+part2()
