@@ -13,21 +13,37 @@ def findRange(t, r):
     if t**2-4*r < 0:
         print("big problem, shouldn't do this")
         return 0
-    x0 = (t+math.sqrt(t**2-4*r))/2
-    x1 = (t-math.sqrt(t**2-4*r))/2
+    delta = math.sqrt(t**2-4*r)
+    x0 = (t+delta)/2
+    x1 = (t-delta)/2
     print(x0,x1)
-    if x0-math.floor(x0)>0:
+
+    tolerance = 0.001
+    print("tolerance = "+str(tolerance))
+    if abs(x0-int(x0))<tolerance:
+        x0 = int(x0) - 1
+    else:
         x0 = math.floor(x0)
+
+    if abs(x1-int(x1)) < tolerance:
+        x1 = int(x1)+1
     else:
-        x0 = math.floor(x0) - 1
-    
-    if x1-math.floor(x1)>0:
         x1 = math.ceil(x1)
-    else:
-        x1 = math.ceil(x1) + 1
-    print(x0,x1)
-    print("sol "+str(x0-x1+1))
-    return x0-x1
+
+
+    print(x0,x1,x0-x1+1)
+    return x0-x1+1
+
+def part2():
+    total = 1
+    with open('inputs/day6.txt') as f:
+        times = [int(time) for time in re.findall('\d+',f.readline().replace(" ",""))]
+        records = [int(record) for record in re.findall('\d+',f.readline().replace(" ",""))]
+        print(times)
+        print(records)
+        for i, time in enumerate(times):
+            total *= findRange(time,records[i])
+    return total
 
 def part1():
     total = 1
@@ -40,4 +56,5 @@ def part1():
             total *= findRange(time,records[i])
     return total
 
-print(part1())
+# print(part1())
+print(part2())
